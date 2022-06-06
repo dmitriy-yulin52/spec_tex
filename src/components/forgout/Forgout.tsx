@@ -1,77 +1,117 @@
 import * as React from 'react'
-import {ChangeEvent, memo, ReactElement, useCallback, useState} from "react";
-import {UniversalDialog} from "../../utils/ComponentUtils";
-import styles from "../signup/SignUp.module.sass";
-import {button_style, password_style, validateEmailField} from "../signup/SignUp";
-import classNames from "classnames";
-import {setForgoutNumber} from "../../redux/auth/actions";
-import {useDispatch} from "react-redux";
+import {ChangeEvent, memo, ReactElement, useCallback, useEffect, useState} from 'react'
+import {validateLoginField} from "../signup/SignUp";
+import {useDispatch, useSelector} from "react-redux";
+import {open_dialog} from "../../redux/password-dialog/selectors";
+import {closePasswordDialog, openPasswordDialog, setForgoutPasswordAndLogin} from "../../redux/password-dialog/actions";
+import {Dialog} from "../../utils/Dialog/Dialog";
+import logo from '../../logo.png'
 
 
-interface ForgoutProps {
+interface ForgoutDialogProps {
     onClose: () => void
+    open: boolean
+    auth_user_login: string
 }
 
-export const ForgoutDialog = memo((props: ForgoutProps): ReactElement => {
-    const {onClose} = props
+export function login_mask(value: string) {
+    const regex = /(\d?)(\d{3})(\d{3})(\d{2})(\d{2})/g;
+    const subst = "+$1$2$3$4$5";
+    return value.replace(regex, subst);
+}
+
+export const ForgoutDialog = memo((props: ForgoutDialogProps): ReactElement => {
+    const {onClose, open, auth_user_login} = props
 
     const dispatch = useDispatch()
+    const open_password_dialog: boolean = useSelector(open_dialog)
 
-    const [onNumber, setOnNumber] = useState('')
-    const [errorOnNumber, setErrorOnNumber] = useState<null | string>(null)
-    const disable_button = !onNumber || !validateEmailField(onNumber)
+    const [login, setLogin] = useState('')
+    const [password, setPassword] = useState('')
+    const [error_login, set_error_Login] = useState<null | string>(null)
+    const disable_button = !login || !validateLoginField(login)
 
 
-    const onChangeOnNumberHandler = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-        setOnNumber(e.target.value)
-        setErrorOnNumber(null)
-        if (!validateEmailField(onNumber)) {
-            setErrorOnNumber('Поле должно содеражть только цифры начинающихся с +7')
+    const onChangeLoginHandler = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        setLogin(e.currentTarget.value)
+        set_error_Login(null)
+
+        if (!validateLoginField(login)) {
+            set_error_Login('Некорректный номер телефона')
         } else {
-            setErrorOnNumber(null)
+            set_error_Login('')
         }
-        if (e.target.value.length > 12 && validateEmailField(onNumber)) {
-            setErrorOnNumber('Некорректный номер телефона')
+         if (!e.target.value) {
+            set_error_Login('Обязательное поле')
         }
-        if (!e.target.value) {
-            setErrorOnNumber('Обязательное поле')
-        }
-    }, [setOnNumber, onNumber, validateEmailField, setErrorOnNumber])
+    }, [setLogin, login, validateLoginField, set_error_Login])
 
 
     const onSubmit = useCallback(() => {
-        if (validateEmailField(onNumber)) {
-            dispatch(setForgoutNumber(onNumber))
-            setOnNumber('')
-            onClose()
-        }else {
-            setErrorOnNumber('Некорректный номер телефона')
+        if (login_mask(login.toString()) === auth_user_login) {
+            dispatch(openPasswordDialog())
+            // setLogin('')
+        } else {
+            set_error_Login('Некорректный номер телефона')
         }
-    }, [setForgoutNumber, onNumber,setErrorOnNumber])
+        if (login_mask(login.toString()).length > 12) {
+            set_error_Login('Значение больше 12 символов')
+        }
+        // if (login_mask(login.toString()).length < 12) {
+        //     set_error_Login('Значение меньше 12 символов')
+        // }
+    }, [login, set_error_Login, setLogin, openPasswordDialog,login_mask])
 
 
-    return <UniversalDialog>
-        <div className={styles.form}>
-            <div className={styles.form_block}>
-                <span className={classNames(styles.subtitle, {
-                    [styles.subtitle_error]: errorOnNumber
-                })}>Введите номер телефона</span>
-                <input className={classNames(styles.input, {
-                    [styles.error_input]: errorOnNumber
-                })} value={onNumber} onChange={onChangeOnNumberHandler} placeholder={'Номер телефона'}/>
-                <span className={classNames({
-                    [styles.error_span]: errorOnNumber
-                })}>{errorOnNumber}</span>
-            </div>
-        </div>
-        <div style={password_style}>
-            <a href={'#'} className={styles.link_password} onClick={onClose}>Назад</a>
-        </div>
-        <div style={button_style}>
-            <button onClick={onSubmit} className={classNames(styles.button, {
-                [styles.button_disabled]: disable_button
-            })} disabled={disable_button}>ПОЗВОНИТЬ
-            </button>
-        </div>
-    </UniversalDialog>
+    const onChangeHandlerPassword = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        setPassword(e.currentTarget.value)
+    }, [setPassword, password])
+
+    const closePasswordDialogHandler = useCallback(() => {
+        dispatch(closePasswordDialog())
+    }, [closePasswordDialog])
+
+    const onCloseDialogHandler = useCallback(() => {
+        onClose()
+        // setLogin('')
+        set_error_Login('')
+    }, [onClose, setLogin, login, set_error_Login, error_login])
+
+
+    const onSubmitForgoutPassword = useCallback(()=>{
+        dispatch(setForgoutPasswordAndLogin({login:login_mask(login.toString()),password:password}))
+        closePasswordDialogHandler()
+        onCloseDialogHandler()
+    },[setForgoutPasswordAndLogin,password])
+
+    return <>
+        <Dialog
+            open={open}
+            form
+            icon={logo}
+            login={login}
+            onChangeLogin={onChangeLoginHandler}
+            label_login={'Введите номер телефона'}
+            login_error={error_login}
+            goButtonLabel={'Назад'}
+            handlerSubmitButton={onSubmit}
+            submit_button_label={'Восстановить'}
+            disabled_button_submit={disable_button}
+            handlerGoButtonLabel={onCloseDialogHandler}
+            type_login_input
+            placeholder_login={'Номер телефона'}
+        />
+        <Dialog
+            form
+            open={open_password_dialog}
+            title={'Восстановление пароля'}
+            label_password={'Придумайте пароль'}
+            password={password}
+            onChangePassword={onChangeHandlerPassword}
+            goButtonLabel={'Назад'}
+            handlerSubmitButton={onSubmitForgoutPassword}
+            handlerGoButtonLabel={closePasswordDialogHandler}
+            submit_button_label={'Создать пароль'}
+        />
+    </>
 })

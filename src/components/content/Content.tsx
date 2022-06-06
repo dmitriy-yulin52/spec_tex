@@ -11,7 +11,7 @@ import {useSelector} from "react-redux";
 export const Content = ():ReactElement=> {
     const success_user:boolean = useSelector(successUser)
     return <>
-        {!success_user && <SignUp/>}
-        {success_user && <Profile/>}
+        {!success_user && <SignUp success_user={success_user}/>}
+        {success_user && <Profile />}
     </>
 }

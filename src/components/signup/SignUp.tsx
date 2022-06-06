@@ -1,30 +1,34 @@
 import * as React from "react";
-import {ChangeEvent, ReactElement, useCallback, useEffect, useState} from "react";
-import styles from './SignUp.module.sass'
-import {UniversalDialog} from "../../utils/ComponentUtils";
-import {ForgoutDialog} from "../forgout/Forgout";
-import {useForm} from "react-hook-form";
+import {ChangeEvent, memo, ReactElement, useCallback, useEffect, useState} from "react";
+import {ForgoutDialog, login_mask} from "../forgout/Forgout";
 import classNames from "classnames";
 import {useDispatch, useSelector} from "react-redux";
-import {RootState} from "../../redux/store";
-import {forgoutNumber} from "../../redux/auth/selectors";
+import {auth_user} from "../../redux/auth/selectors";
 import {setAuthUser} from "../../redux/auth/actions";
+import logo from '../../logo.png'
+import {Dialog} from "../../utils/Dialog/Dialog";
+import {forgout_password} from "../../redux/password-dialog/selectors";
 
-export const password_style = {
-    display: 'flex', justifyContent: 'flex-end'
-} as const
 
-export const button_style = {
-    display: 'flex', justifyContent: 'center', alignItems: 'center'
-} as const
-
-export function validateEmailField(value: string): boolean {
-    return /^\+\d+$/.test(value)
+export function validateLoginField(value: string): boolean {
+    // return /^\d?\d+$/.test(value)
+    return /^[0-9]*$/.test(value)
+    // return /^[\+\d]?(?:[\d-.\s()]*)$/.test(value)
 }
 
-export const SignUp = (): ReactElement => {
+interface SignUpProps {
+    success_user:boolean
+}
 
-    const forgout_number: string = useSelector(forgoutNumber)
+export const SignUp = memo((props:SignUpProps): ReactElement => {
+
+    const {success_user} = props
+
+    const auth_user_login: string | undefined = useSelector(auth_user).login
+    const auth_user_password: string | undefined = useSelector(auth_user).password
+    const password_dialog_forgout_password: string = useSelector(forgout_password)
+
+
     const dispatch = useDispatch()
 
     const [open, setOpen] = useState(false)
@@ -35,46 +39,43 @@ export const SignUp = (): ReactElement => {
 
 
     const isAvailable = login && password
-
-    const disable_button = !isAvailable || !validateEmailField(login)
-
-
-    const onCloseForgoutDialog = useCallback(() => {
-        setOpen(!open)
-    }, [open, setOpen])
+    const disable_button = !isAvailable || !validateLoginField(login)
 
 
     const onSubmit = useCallback(() => {
-        if (isAvailable) {
-            dispatch(setAuthUser({login: login, password: password}))
+        if ((login_mask(login.toString()) === auth_user_login) && (password === auth_user_password)) {
+            dispatch(setAuthUser({login: login_mask(login.toString()), password: password}))
             setLogin('')
             setPassword('')
         } else {
-            if (!login) {
-                setErrorLogin('Обязательное поле')
-            }
-            if (!password) {
-                setErrorPassword('Обязательное поле')
-            }
+            setErrorLogin('Неверный логин')
+            setErrorPassword('Неверный пароль')
         }
-        console.log(login, password, validateEmailField(login))
-    }, [password, login, setLogin, setPassword])
+        if (!login && !password) {
+            setErrorLogin('Обязательное поле')
+            setErrorPassword('Обязательное поле')
+        }
+        if (login_mask(login.toString()).length > 12) {
+            setErrorLogin('Значение больше 12 символов')
+        }
+        // if (login_mask(login.toString()).length < 12) {
+        //     setErrorLogin('Значение меньше 12 символов')
+        // }
+    }, [password, login, setLogin, setPassword, setErrorPassword, setErrorLogin, login_mask, login_mask])
 
     const onChangeLoginHandler = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         setLogin(e.target.value)
         setErrorLogin(null)
-        if (!validateEmailField(login)) {
-            setErrorLogin('Поле должно содеражть только цифры и начинаться с +7')
+        if (!validateLoginField(login)) {
+            setErrorLogin('Некорректный номер телефона')
         } else {
             setErrorLogin(null)
-        }
-        if (e.target.value.length > 12 && validateEmailField(login)) {
-            setErrorLogin('Некорректный номер телефона')
         }
         if (!e.target.value) {
             setErrorLogin('Обязательное поле')
         }
     }, [setLogin, login, setErrorLogin, errorLogin])
+
     const onChangePasswordHandler = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         setPassword(e.target.value)
         setErrorPassword(null)
@@ -86,51 +87,50 @@ export const SignUp = (): ReactElement => {
 
     const openForgoutDialog = useCallback(() => {
         setOpen(!open)
-    }, [setOpen, open])
+        setLogin('')
+        setPassword('')
+        setErrorLogin('')
+        setErrorPassword('')
+    }, [setOpen, open, setLogin, setPassword, setErrorLogin, setErrorPassword])
+    const onCloseForgoutDialog = useCallback(() => {
+        setOpen(!open)
+    }, [open, setOpen])
+
 
     useEffect(() => {
-        setLogin(forgout_number)
-    }, [forgout_number])
+        if (password_dialog_forgout_password === auth_user_password) {
+            const str = auth_user_login.slice(1, 12)
+            setLogin(str)
+        }
+    }, [password_dialog_forgout_password])
+    useEffect(() => {
+        if (!success_user) {
+            setLogin('')
+        }
+    }, [success_user])
 
-    return (<div className={classNames('logo', 'app')}>
-        {!open && <UniversalDialog>
-            <div className={styles.form}>
-                <div className={styles.form_block}>
-                    <span className={classNames(styles.subtitle, {
-                        [styles.subtitle_error]: errorLogin
-                    })}>Введите логин</span>
-                    <input value={login} onChange={onChangeLoginHandler}
-                           className={classNames(styles.input, {
-                               [styles.error_input]: errorLogin
-                           })}
-                           placeholder={'Логин'}/>
-                    <span className={classNames({
-                        [styles.error_span]: errorLogin
-                    })}>{errorLogin}</span>
-                </div>
-                <div className={styles.form_block}>
-                    <span className={classNames(styles.subtitle, {
-                        [styles.subtitle_error]: errorPassword
-                    })}>Введите пароль</span>
-                    <input value={password} onChange={onChangePasswordHandler} className={classNames(styles.input, {
-                        [styles.error_input]: errorPassword
-                    })}
-                           placeholder={'Пароль'}/>
-                    <span className={classNames({
-                        [styles.error_span]: errorPassword
-                    })}>{errorPassword}</span>
-                </div>
-            </div>
-            <div style={password_style}>
-                <a href={'#'} className={styles.link_password} onClick={openForgoutDialog}>Забыли пароль?</a>
-            </div>
-            <div style={button_style}>
-                <button disabled={disable_button} className={classNames(styles.button, {
-                    [styles.button_disabled]: !isAvailable || !validateEmailField(login)
-                })} onClick={onSubmit}>Войти
-                </button>
-            </div>
-        </UniversalDialog>}
-        {open && <ForgoutDialog onClose={onCloseForgoutDialog}/>}
+    return (
+        <div className={classNames('logo', 'app')}>
+        <Dialog
+            open={!open}
+            icon={logo}
+            form
+            login={login}
+            password={password}
+            label_login={'Введите логин'}
+            login_error={errorLogin}
+            password_error={errorPassword}
+            goButtonLabel={'Забыли пароль?'}
+            submit_button_label={'Войти'}
+            handlerSubmitButton={onSubmit}
+            onChangeLogin={onChangeLoginHandler}
+            onChangePassword={onChangePasswordHandler}
+            label_password={'Введите пароль'}
+            placeholder_login={'Логин'}
+            handlerGoButtonLabel={openForgoutDialog}
+            type_login_input
+            disabled_button_submit={disable_button}
+        />
+        <ForgoutDialog onClose={onCloseForgoutDialog} open={open} auth_user_login={auth_user_login ?? ''}/>
     </div>)
-}
+})

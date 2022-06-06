@@ -7,28 +7,23 @@ export type UserType = {
 }
 
 interface initialStateType {
-    user: UserType | null
+    user: UserType
     error: boolean
-    forgout_number: string
     success:boolean
 }
 
 export const initialState = {
-    user:null,
+    user:{
+        login:'+71111111111',
+        password:'123456'
+    },
     error: false,
-    forgout_number: '',
     success:false
 }
 
 
-export const authReducer = (state: initialStateType = initialState, action: ActionsType) => {
+export const authReducer = (state: initialStateType = initialState, action: ActionsType):initialStateType => {
     switch (action.type) {
-        case "SET_FORGOUT_NUMBER":
-            return {
-                ...state,
-                success:false,
-                forgout_number: action.forgout_number
-            }
         case "SET_AUTH_USER":
             return {
                 ...state,
@@ -37,17 +32,20 @@ export const authReducer = (state: initialStateType = initialState, action: Acti
                     login:action.login,
                     password:action.password
                 },
-                forgout_number:''
             }
         case "EXIT_AUTH_USER":
             return {
                 ...state,
                 success:false,
+            }
+        case "SET_FORGOUT_PASSWORD_AND_LOGIN":
+            return {
+                ...state,
+                success: false,
                 user:{
-                    login:'',
-                    password:''
-                },
-                forgout_number:''
+                    login:action.payload.login,
+                    password: action.payload.password
+                }
             }
         default:
             return state

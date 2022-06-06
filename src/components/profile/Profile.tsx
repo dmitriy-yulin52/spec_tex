@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {ReactElement, useCallback} from "react";
+import {memo, ReactElement, useCallback} from "react";
 import styles from './Profile.module.sass'
 import {useDispatch, useSelector} from "react-redux";
 import {auth_user} from "../../redux/auth/selectors";
@@ -8,15 +8,14 @@ import {exitAuthUser} from "../../redux/auth/actions";
 
 
 
+export const Profile = memo((): ReactElement | null => {
 
-export const Profile = ():ReactElement | null=> {
-
-    const success_user: UserType | null = useSelector(auth_user)
+    const user: UserType | null = useSelector(auth_user)
     const dispatch = useDispatch()
 
-    const exit_user = useCallback(()=>{
+    const exit_user = useCallback(() => {
         dispatch(exitAuthUser())
-    },[exitAuthUser])
+    }, [exitAuthUser])
 
     return <div>
         <div className={styles.wrapper}>
@@ -25,9 +24,9 @@ export const Profile = ():ReactElement | null=> {
         <div className={styles.content}>
             <h1>Вы успешно авторизировались</h1>
             <div>
-                <div>Ваш логин: {success_user && success_user.login}</div>
-                <div>Ваш пароль: {success_user && success_user.password}</div>
+                <div>Ваш логин: {user && user.login}</div>
+                <div>Ваш пароль: {user && user.password}</div>
             </div>
         </div>
     </div>
-}
+})

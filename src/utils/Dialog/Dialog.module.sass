@@ -1,0 +1,104 @@
+.wrapper
+  //height: 350px
+  position: absolute
+  font-family: 'Manrope'
+  background: #fff
+  box-shadow: -10px 7px 20px rgba(0, 0, 0, 0.25)
+  border-radius: 20px
+  padding: 20px
+
+.form
+  margin-top: 65px
+  display: flex
+  flex-direction: column
+  justify-content: center
+  align-items: center
+
+.form_block
+  display: flex
+  flex-direction: column
+  margin-bottom: 19px
+  position: relative
+
+.input
+  box-sizing: border-box
+  width: 343px
+  height: 32px
+  border: 1px solid #E5E5E5
+  border-radius: 5px
+  padding: 6px 0px 7px 13px
+
+  &:focus
+    outline: 1px solid #10100F
+
+    + .subtitle
+      color: red
+
+  &::-webkit-outer-spin-button
+    -webkit-appearance: none
+
+.label
+  text-decoration: none
+  font-family: 'Manrope'
+  font-style: normal
+  font-weight: 600
+  font-size: 14px
+  line-height: 19px
+  color: #10100F
+  margin-bottom: 4px
+
+.label_error
+  color: red
+
+.error_input
+  outline: 1px solid red
+
+.error_span
+  color: red
+  width: 345px
+
+.logo
+  display: flex
+  align-items: center
+  justify-content: center
+
+.title
+  font-family: 'Manrope'
+
+
+.link
+  font-family: 'Manrope'
+  font-style: normal
+  font-weight: 600
+  font-size: 16px
+  line-height: 22px
+  color: #F6B52E
+  margin-bottom: 42px
+  text-decoration: none
+
+
+.button_submit
+  border: none
+  cursor: pointer
+  width: 343px
+  height: 44px
+  background: #F2B705
+  border-radius: 5px
+  font-family: 'Manrope'
+  font-style: normal
+  font-weight: 600
+  font-size: 20px
+  line-height: 27px
+  color: #FFFFFF
+
+.button_submit_disabled
+  background: gainsboro
+  cursor: auto
+
+
+.icon_password
+  width: 16px
+  position: absolute
+  top: 30px
+  right: 10px
+  cursor: pointer
