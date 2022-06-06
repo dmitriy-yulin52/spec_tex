@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {ChangeEvent, memo, ReactElement, useCallback, useEffect, useState} from 'react'
+import {ChangeEvent, memo, ReactElement, useCallback, useState} from 'react'
 import {validateLoginField} from "../signup/SignUp";
 import {useDispatch, useSelector} from "react-redux";
 import {open_dialog} from "../../redux/password-dialog/selectors";

@@ -7,7 +7,6 @@ import {UserType} from "../../redux/auth/auth-reducer";
 import {exitAuthUser} from "../../redux/auth/actions";
 
 
-
 export const Profile = memo((): ReactElement | null => {
 
     const user: UserType | null = useSelector(auth_user)
@@ -17,16 +16,17 @@ export const Profile = memo((): ReactElement | null => {
         dispatch(exitAuthUser())
     }, [exitAuthUser])
 
-    return <div>
-        <div className={styles.wrapper}>
-            <button onClick={exit_user} className={styles.button_exit}>Выйти</button>
-        </div>
-        <div className={styles.content}>
-            <h1>Вы успешно авторизировались</h1>
-            <div>
-                <div>Ваш логин: {user && user.login}</div>
-                <div>Ваш пароль: {user && user.password}</div>
+    return (
+        <div>
+            <div className={styles.wrapper}>
+                <button onClick={exit_user} className={styles.button_exit}>Выйти</button>
             </div>
-        </div>
-    </div>
+            <div className={styles.content}>
+                <h1>Вы успешно авторизировались</h1>
+                <div>
+                    <div>Ваш логин: {user && user.login}</div>
+                    <div>Ваш пароль: {user && user.password}</div>
+                </div>
+            </div>
+        </div>)
 })
